@@ -17,7 +17,7 @@
 DESC="socat for hdhr"
 NAME=socat
 DAEMON=/usr/bin/$NAME
-SOCAT_ARGS="-d -d -lf /var/log/socat.log udp4-recvfrom:65001,broadcast,fork udp4-sendto:172.22.1.50:65001"
+SOCAT_ARGS="udp4-recvfrom:65001,broadcast,fork udp4-sendto:172.22.1.50:65001"
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 
