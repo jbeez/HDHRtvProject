@@ -1,0 +1,87 @@
+#!/bin/bash
+#This file sourced from: https://community.ui.com/questions/Howto-HDHomerun-discovery-on-different-LAN-segment/97db52c6-4add-4ba1-ab0d-27ee6f43db8f
+#Thanks meckhert!
+### BEGIN INIT INFO
+# Provides:          socat
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# X-Start-Before:
+# X-Stop-After:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: hdhr broadcasts
+# Description:       Forward hdhr broadcasts across subnet
+### END INIT INFO
+
+DESC="socat for hdhr"
+NAME=socat
+DAEMON=/usr/bin/$NAME
+SOCAT_ARGS="-d -d -lf /var/log/socat.log udp4-recvfrom:65001,broadcast,fork udp4-sendto:172.22.1.50:65001"
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+
+. /lib/lsb/init-functions
+
+
+[ -x $DAEMON ] || exit 0
+
+
+start_socat() {
+        start-stop-daemon --quiet --start --pidfile /var/run/socat.$NAME.pid --background --make-pidfile --exec $DAEMON -- $SOCAT_ARGS $ARGS < /dev/null
+}
+
+stop_socat() {
+        start-stop-daemon --stop --quiet --pidfile /var/run/socat.$NAME.pid --exec $DAEMON
+        rm -f /var/run/socat.$NAME.pid
+}
+
+start() {
+        echo "Starting $DESC:"
+        start_socat
+}
+
+stop() {
+        echo -n "Stopping $DESC:"
+
+        for PIDFILE in `ls /var/run/socat.*.pid 2> /dev/null`; do
+                NAME=`echo $PIDFILE | cut -c16-`
+                NAME=${NAME%%.pid}
+                stop_socat
+                echo -n " $NAME"
+        done
+}
+
+case "$1" in
+    start)
+#        log_daemon_msg "Starting socat" "socat"
+        if start ; then
+                log_end_msg $?
+        else
+                log_end_msg $?
+        fi
+        ;;
+    stop)
+#       log_daemon_msg "Stopping socat" "socat"
+        if stop ; then
+                log_end_msg $?
+        else
+                log_end_msg $?
+        fi
+        ;;
+    reload|force-reload|restart)
+        log_daemon_msg "Restarting socat" "socat"
+        stop
+        if start ; then
+                log_end_msg $?
+        else
+                log_end_msg $?
+        fi
+        ;;
+        *)
+        echo "Usage: /etc/init.d/$NAME {start|stop|reload|force-reload|restart}"
+        exit 3
+        ;;
+esac
+
+exit 0
